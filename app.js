@@ -53,6 +53,10 @@ if (process.env.FRONTEND_URL) {
   allowedOrigins.add(process.env.FRONTEND_URL);
 }
 
+if (process.env.WORDPRESS_URL) {
+  allowedOrigins.add(process.env.WORDPRESS_URL.replace(/\/$/, ''));
+}
+
 app.use(cors({
   origin: function (origin, callback) {
     // Allow non-browser requests (no origin) and allowed origins

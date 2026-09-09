@@ -26,8 +26,12 @@ if (!useMongoOnly) {
   console.log('[STARTUP] USE_MONGO is enabled, skipping MySQL startup');
 }
 
-console.log('[STARTUP] Connecting to MongoDB...');
-connectMongoDB();
+if (useMongoOnly) {
+  console.log('[STARTUP] Connecting to MongoDB...');
+  connectMongoDB();
+} else {
+  console.log('[STARTUP] USE_MONGO is disabled, skipping MongoDB startup');
+}
 
 try {
   console.log('[STARTUP] Loading socket handlers...');

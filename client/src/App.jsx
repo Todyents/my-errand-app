@@ -5,9 +5,9 @@ import axios from 'axios'
 import ProtectedRoute from './components/ProtectedRoute'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import { TranslationProvider } from './contexts/TranslationContext'
+import { emitPageLifecycle, registerBackLifecycle } from './cordova'
+import { API_BASE } from './api'
 import './App.css'
-
-const API_BASE = process.env.API_BASE || ''
 
 // Lazy load components
 const Home = React.lazy(() => import('./pages/Home'))
@@ -33,6 +33,16 @@ function App() {
   ])
   const location = useLocation()
   const isAuthenticated = !!user
+
+  useEffect(() => {
+    const stopPageLifecycle = emitPageLifecycle(location.pathname)
+    const stopBackLifecycle = registerBackLifecycle()
+
+    return () => {
+      stopPageLifecycle()
+      stopBackLifecycle()
+    }
+  }, [location.pathname])
 
   // Fetch user balance
   const fetchUserBalance = async () => {

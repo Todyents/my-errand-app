@@ -29,22 +29,29 @@ router.post('/register', async (req, res) => {
       emergencyContactName, emergencyContactPhone
     } = req.body;
 
-    if (!email || !password || !name) {
+    const normalizedEmail = typeof email === 'string' ? email.toLowerCase().trim() : '';
+    const normalizedName = typeof name === 'string' ? name.trim() : '';
+    const normalizedUserType = userType || 'client';
+
+    if (!normalizedEmail || !password || !normalizedName) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
 
-    const normalizedUserType = userType || 'client';
+    if (!['client', 'runner'].includes(normalizedUserType)) {
+      return res.status(400).json({ error: 'User type must be client or runner.' });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
 
     if (useMongo) {
-      const existing = await User.findOne({ email: email.toLowerCase().trim() }).lean();
+      const existing = await User.findOne({ email: normalizedEmail }).lean();
       if (existing) {
         return res.status(400).json({ error: 'User already exists with this email' });
       }
 
       const user = new User({
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
+        name: normalizedName,
+        email: normalizedEmail,
         password: hashed,
         phone: phone || null,
         userType: normalizedUserType,
@@ -63,7 +70,7 @@ router.post('/register', async (req, res) => {
     }
 
     // MySQL fallback registration
-    const [existing] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
+    const [existing] = await db.execute('SELECT id FROM users WHERE LOWER(email) = ?', [normalizedEmail]);
     if (existing.length > 0) {
       return res.status(400).json({ error: 'User already exists with this email' });
     }
@@ -74,7 +81,7 @@ router.post('/register', async (req, res) => {
     try {
       const [userResult] = await connection.execute(
         'INSERT INTO users (name, email, password, phone, user_type, balance) VALUES (?, ?, ?, ?, ?, ?)',
-        [name, email, hashed, phone || null, normalizedUserType, 0.00]
+        [normalizedName, normalizedEmail, hashed, phone || null, normalizedUserType, 0.00]
       );
 
       const userId = userResult.insertId;
@@ -90,8 +97,8 @@ router.post('/register', async (req, res) => {
             userId, address || null, city || null, zipCode || null,
             preferredContactMethod || 'phone', typicalErrands || null,
             maxBudgetPerErrand || null, specialInstructions || null,
-            emergencyContacts || null, smsNotifications || true,
-            termsAccepted || false, privacyAccepted || false,
+            emergencyContacts || null, smsNotifications ?? true,
+            termsAccepted ?? false, privacyAccepted ?? false,
             termsAccepted ? new Date() : null, privacyAccepted ? new Date() : null
           ]
         );
@@ -106,7 +113,7 @@ router.post('/register', async (req, res) => {
             userId, vehicleType || 'none', areasOfService || null, availableHours || null,
             preferredErrandTypes || null, insuranceCoverage || false,
             emergencyContactName || null, emergencyContactPhone || null,
-            smsNotifications || true, termsAccepted || false, privacyAccepted || false,
+            smsNotifications ?? true, termsAccepted ?? false, privacyAccepted ?? false,
             termsAccepted ? new Date() : null, privacyAccepted ? new Date() : null
           ]
         );
@@ -134,12 +141,14 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
+    const normalizedEmail = typeof email === 'string' ? email.toLowerCase().trim() : '';
+
+    if (!normalizedEmail || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
     if (useMongo) {
-      const user = await User.findOne({ email: email.toLowerCase().trim() }).lean();
+      const user = await User.findOne({ email: normalizedEmail }).lean();
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
@@ -156,7 +165,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+    const [users] = await db.execute('SELECT * FROM users WHERE LOWER(email) = ?', [normalizedEmail]);
     const user = users[0];
 
     if (!user || !(await bcrypt.compare(password, user.password))) {

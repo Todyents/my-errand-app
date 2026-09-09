@@ -66,6 +66,25 @@ My Errand App is a marketplace-style service platform for booking, managing, and
 
 5. Prepare your database schema. Use the SQL files in `database/` and the scripts in `scripts/` as needed.
 
+For local MariaDB, copy `.env.example` to `.env`, then run:
+
+```bash
+npm run db:start
+npm run server
+```
+
+The MariaDB data is stored in the `mariadb_data` Docker volume. The schema files are applied only when that volume is initialized.
+
+### WordPress linking
+
+WordPress cannot connect directly to a MariaDB container running in this workspace. Deploy the frontend and backend to public HTTPS URLs, then add a normal WordPress button or link to the frontend URL:
+
+```html
+<a href="https://app.example.com" target="_blank" rel="noopener">Open My Errand App</a>
+```
+
+Set the deployed backend's `CLIENT_URL` and `FRONTEND_URL` to the WordPress site's origin if WordPress makes browser requests to the API. Do not expose MariaDB publicly; expose only the HTTPS API.
+
 ## Running the app
 
 ### Development

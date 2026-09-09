@@ -3,12 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="description" content="My Errand App - Your one-stop solution for managing errands and tasks" />
     <title>My Errand App</title>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.__API_BASE__ = window.__API_BASE__ || ''
+    </script>
     <!-- Webpack will automatically inject the script tags here -->
   </body>
 </html>

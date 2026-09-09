@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget id="com.myerrand.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>My Errand App</name>
+    <description>Manage errands, payments, and deliveries.</description>
+    <author email="support@myerrand.app" href="https://myerrand.app">My Errand App Team</author>
+
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-navigation href="http://localhost:*/*" />
+    <allow-navigation href="https://*/*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+
+    <preference name="Orientation" value="portrait" />
+    <preference name="Fullscreen" value="false" />
+    <preference name="BackgroundColor" value="#ffffff" />
+    <preference name="StatusBarStyle" value="lightcontent" />
+
+    <platform name="android">
+        <preference name="AndroidXEnabled" value="true" />
+    </platform>
+</widget>

@@ -110,30 +110,6 @@ const WalletManager = () => {
           // Redirect to Paystack payment page
           window.location.href = intentResponse.data.authorization_url;
         }
-      } else {
-        // Stripe payment flow
-        const intentResponse = await axios.post('/api/wallet/deposit/create-intent', {
-          amount: parseFloat(depositAmount),
-          currency: selectedCurrency,
-          paymentMethod: 'stripe'
-        }, authHeaders());
-
-        if (intentResponse.data.success) {
-          // In a real implementation, you would integrate with Stripe Elements here
-          alert('Payment processing... (In production, this would use Stripe Elements)');
-          
-          // Step 2: Confirm deposit (simulate successful payment)
-          const confirmResponse = await axios.post('/api/wallet/deposit/confirm', {
-            paymentIntentId: intentResponse.data.paymentIntentId,
-            currency: selectedCurrency
-          }, authHeaders());
-
-          if (confirmResponse.data.success) {
-            alert('Deposit successful!');
-            setDepositAmount('');
-            await refreshWalletData();
-          }
-        }
       }
     } catch (error) {
       alert('Deposit failed: ' + (error.response?.data?.message || error.message));
@@ -285,7 +261,6 @@ const WalletManager = () => {
           />
           <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full p-2 border rounded mb-4">
             <option value="paystack">Paystack</option>
-            <option value="stripe">Stripe</option>
           </select>
           <button
             onClick={handleDeposit}

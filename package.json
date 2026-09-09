@@ -8,6 +8,10 @@
     "server": "nodemon server.js",
     "client": "cd client && npm run dev",
     "build": "cd client && npm run build",
+    "build:cordova": "npm run build && node scripts/prepare-cordova.js",
+    "cordova:prepare": "cordova prepare",
+    "cordova:build:android": "npm run build:cordova && cordova build android",
+    "cordova:run:android": "npm run build:cordova && cordova run android",
     "build:prod": "cd client && npm run build && cd .. && npm run start",
     "install-client": "cd client && npm install",
     "setup-db": "node scripts/setup-database.js",
@@ -19,8 +23,6 @@
   "dependencies": {
     "@paypal/react-paypal-js": "^8.8.3",
     "@react-google-maps/api": "^2.20.7",
-    "@stripe/react-stripe-js": "^3.7.0",
-    "@stripe/stripe-js": "^7.4.0",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
@@ -43,7 +45,6 @@
     "react-i18next": "^15.6.1",
     "sequelize": "^6.37.7",
     "socket.io": "^4.8.1",
-    "stripe": "^18.3.0",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
     "workbox-core": "^7.3.0",
@@ -53,6 +54,20 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "cordova-android": "^15.1.0",
+    "cordova-plugin-dialogs": "^2.0.2",
+    "cordova-plugin-inappbrowser": "^7.0.0",
+    "cordova-plugin-statusbar": "^4.0.0",
     "nodemon": "^3.0.1"
+  },
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-dialogs": {},
+      "cordova-plugin-inappbrowser": {},
+      "cordova-plugin-statusbar": {}
+    },
+    "platforms": [
+      "android"
+    ]
   }
 }

@@ -9,7 +9,7 @@ My Errand App is a marketplace-style service platform for booking, managing, and
 - Admin dashboard for agent verification and payment history
 - Create and manage errands with pickup/dropoff details
 - Accept errands for delivery agents
-- Payment processing via PayPal and Stripe-powered wallet deposits
+- Payment processing via PayPal and Paystack wallet deposits
 - Escrow-style wallet flow: client spendable balance → escrow → runner withdrawable balance
 - Real-time communication using Socket.IO
 - Internationalization support using `react-i18next`
@@ -27,7 +27,7 @@ My Errand App is a marketplace-style service platform for booking, managing, and
 
 - Backend: Node.js, Express, MySQL, MongoDB, JWT, Socket.IO
 - Frontend: React, Webpack, `react-i18next`, Axios
-- Payments: PayPal, Stripe
+- Payments: PayPal, Paystack
 - Security: bcrypt, helmet, express-rate-limit, express-validator
 
 ## Installation
@@ -60,7 +60,6 @@ My Errand App is a marketplace-style service platform for booking, managing, and
    MYSQL_PASSWORD=your_mysql_password
    MYSQL_DATABASE=errandsplace
    JWT_SECRET=your_jwt_secret
-   STRIPE_SECRET=your_stripe_secret_key
    PAYPAL_CLIENT_ID=your_paypal_client_id
    PAYPAL_SECRET=your_paypal_secret
    ```
@@ -74,6 +73,45 @@ My Errand App is a marketplace-style service platform for booking, managing, and
 ```bash
 npm run dev
 ```
+
+### Cordova Android build
+
+Cordova packages the production Webpack output from `client/dist` into `www/` before building the native shell.
+
+Install the prerequisites and verify them in a terminal:
+
+```bash
+npm install -g cordova
+javac -version
+adb --version
+```
+
+Set `JAVA_HOME` to your JDK directory and `ANDROID_HOME` to your Android SDK directory. Add these directories to `PATH`:
+
+- `$JAVA_HOME/bin`
+- `$ANDROID_HOME/platform-tools`
+- `$ANDROID_HOME/cmdline-tools/latest/bin`
+
+Initialize the Android platform and plugins once:
+
+```bash
+cordova platform add android
+cordova plugin add cordova-plugin-dialogs
+cordova plugin add cordova-plugin-inappbrowser
+cordova plugin add cordova-plugin-statusbar
+```
+
+The Android platform provides the current splash screen behavior, so the legacy `cordova-plugin-splashscreen` plugin is not used with the configured Android platform version.
+
+Build or run the app after setting `API_BASE` to the reachable backend URL:
+
+```bash
+API_BASE=https://your-backend.example.com npm run build:cordova
+cordova build android
+cordova run android
+```
+
+The debug APK is created under `platforms/android/app/build/outputs/apk/debug/`.
 
 This runs the backend and client concurrently:
 - backend on `http://localhost:5000`
@@ -101,7 +139,6 @@ npm run build:prod
 3. Set the following environment variables:
    - `MONGO_URI`: Your MongoDB Atlas connection string
    - `JWT_SECRET`: A secure random string
-   - `STRIPE_SECRET_KEY`: Your Stripe live secret key
    - `PAYPAL_CLIENT_ID`: Your PayPal client ID
    - `PAYPAL_CLIENT_SECRET`: Your PayPal client secret
    - `CLIENT_URL`: Your Cloudflare Pages domain (e.g., `https://your-app.pages.dev`)
@@ -146,7 +183,6 @@ npm run build:prod
 - `POST /api/agents/login` — agent login
 
 ### Payment routes
-- `POST /api/payments/create-payment-intent` — create a Stripe payment intent
 - `POST /api/payments/capture-order/:orderId` — capture a PayPal order and confirm an errand
 - `POST /api/payments/deposit` — deposit funds into a wallet
 - `POST /api/payments/withdraw` — withdraw funds from a wallet

@@ -47,7 +47,6 @@ JWT_EXPIRY=7d
 # Payment Processing
 PAYPAL_CLIENT_ID=your-paypal-client-id
 PAYPAL_SECRET=your-paypal-secret
-STRIPE_SECRET=sk_test_your-stripe-secret-key
 ```
 
 ### 3. Deploy

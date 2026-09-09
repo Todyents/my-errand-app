@@ -1,5 +1,4 @@
 const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const router = express.Router();
 const axios = require('axios');
 
@@ -47,20 +46,6 @@ router.post('/capture-order/:orderId', async (req, res) => {
   );
 
   res.json({ message: 'Payment captured & errand confirmed' });
-});
-
-
-
-router.post('/create-payment-intent', async (req, res) => {
-  const { amount, currency = 'usd' } = req.body;
-
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: amount * 100,
-    currency,
-    automatic_payment_methods: { enabled: true }
-  });
-
-  res.send({ clientSecret: paymentIntent.client_secret });
 });
 
 

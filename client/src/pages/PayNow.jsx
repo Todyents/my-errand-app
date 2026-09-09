@@ -140,24 +140,6 @@ function PayNow({ user, setUser }) {
           } else {
             setMessage('Failed to initialize payment')
           }
-        } else {
-          // Handle other payment methods (Stripe, etc.)
-          const response = await axios.post('/api/wallet/deposit/create-intent', {
-            amount: numAmount,
-            currency: 'USD',
-            paymentMethod: paymentMethod,
-            email: user.email
-          })
-          
-          if (response.data.success) {
-            setMessage('Payment initialized successfully')
-            // In production, integrate with actual payment gateway
-            setTimeout(() => {
-              fetchWallets()
-              setAmount('')
-              setMessage('Deposit completed successfully!')
-            }, 2000)
-          }
         }
       } else if (operationType === 'withdraw') {
         if (!selectedWithdrawalMethod) {

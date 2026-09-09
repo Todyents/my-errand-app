@@ -1,5 +1,4 @@
 const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const router = express.Router();
 const axios = require('axios');
 const crypto = require('crypto');
@@ -154,26 +153,10 @@ router.get('/balance-summary', async (req, res) => {
 
 // Create deposit intent (Step 1: Generate payment intent)
 router.post('/deposit/create-intent', async (req, res) => {
-  const { amount, currency = 'USD', paymentMethod = 'stripe', email } = req.body;
+  const { amount, currency = 'USD', paymentMethod = 'paystack', email } = req.body;
   
   try {
-    if (paymentMethod === 'stripe') {
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
-        currency: currency.toLowerCase(),
-        automatic_payment_methods: { enabled: true },
-        metadata: {
-          user_id: req.user.id,
-          transaction_type: 'deposit'
-        }
-      });
-      
-      res.json({ 
-        success: true, 
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id
-      });
-    } else if (paymentMethod === 'paystack') {
+    if (paymentMethod === 'paystack') {
       // Initialize Paystack transaction
       const paystackResponse = await axios.post(
         `${PAYSTACK_BASE_URL}/transaction/initialize`,
@@ -212,52 +195,6 @@ router.post('/deposit/create-intent', async (req, res) => {
   } catch (error) {
     console.error('Payment intent creation error:', error.response?.data || error.message);
     res.status(500).json({ success: false, message: 'Failed to create payment intent', error: error.message });
-  }
-});
-
-// Confirm deposit (Step 2: After payment confirmation)
-router.post('/deposit/confirm', async (req, res) => {
-  const { paymentIntentId, currency = 'USD' } = req.body;
-  const userId = req.user.id;
-  
-  try {
-    // Verify payment with Stripe
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    
-    if (paymentIntent.status !== 'succeeded') {
-      return res.status(400).json({ success: false, message: 'Payment not confirmed' });
-    }
-    
-    const amount = paymentIntent.amount / 100; // Convert from cents
-    
-    // Get or create spendable wallet
-    let wallet = await getUserWallet(userId, 'spendable', currency);
-    if (!wallet) {
-      const walletId = await createWallet(userId, 'spendable', currency);
-      wallet = await getUserWallet(userId, 'spendable', currency);
-    }
-    
-    // Update wallet balance
-    await db.execute(
-      'UPDATE wallets SET balance = balance + ? WHERE id = ?',
-      [amount, wallet.id]
-    );
-
-    console.log(`Deposit confirmed: +${amount} ${currency} to wallet ${wallet.id} for user ${userId}`);
-    
-    // Record transaction
-    await db.execute(
-      `INSERT INTO wallet_transactions (
-        to_wallet_id, transaction_type, amount, currency, description, 
-        payment_gateway, gateway_transaction_id, status, processed_at
-      ) VALUES (?, 'deposit', ?, ?, ?, 'stripe', ?, 'completed', NOW())`,
-      [wallet.id, amount, currency, `Deposit via Stripe`, paymentIntentId]
-    );
-    
-    res.json({ success: true, message: 'Deposit successful', amount, currency });
-  } catch (error) {
-    console.error('Deposit confirmation failed:', error);
-    res.status(500).json({ success: false, message: 'Deposit confirmation failed', error: error.message });
   }
 });
 
@@ -527,12 +464,7 @@ router.post('/withdraw', async (req, res) => {
     let withdrawalSuccessful = false;
     let gatewayTransactionId = null;
     
-    if (withdrawalMethod.method_type === 'stripe') {
-      // In production, implement Stripe Connect transfers
-      // For now, simulate successful withdrawal
-      withdrawalSuccessful = true;
-      gatewayTransactionId = `stripe_${Date.now()}`;
-    } else if (withdrawalMethod.method_type === 'paypal') {
+    if (withdrawalMethod.method_type === 'paypal') {
       // In production, implement PayPal payouts
       withdrawalSuccessful = true;
       gatewayTransactionId = `paypal_${Date.now()}`;

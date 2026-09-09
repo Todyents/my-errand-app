@@ -9,7 +9,7 @@ My Errand App is a marketplace-style service platform for booking, managing, and
 - Admin dashboard for agent verification and payment history
 - Create and manage errands with pickup/dropoff details
 - Accept errands for delivery agents
-- Payment processing via PayPal and Stripe-powered wallet deposits
+- Payment processing via PayPal and Paystack wallet deposits
 - Escrow-style wallet flow: client spendable balance → escrow → runner withdrawable balance
 - Real-time communication using Socket.IO
 - Internationalization support using `react-i18next`
@@ -27,7 +27,7 @@ My Errand App is a marketplace-style service platform for booking, managing, and
 
 - Backend: Node.js, Express, MySQL, MongoDB, JWT, Socket.IO
 - Frontend: React, Webpack, `react-i18next`, Axios
-- Payments: PayPal, Stripe
+- Payments: PayPal, Paystack
 - Security: bcrypt, helmet, express-rate-limit, express-validator
 
 ## Installation
@@ -60,7 +60,6 @@ My Errand App is a marketplace-style service platform for booking, managing, and
    MYSQL_PASSWORD=your_mysql_password
    MYSQL_DATABASE=errandsplace
    JWT_SECRET=your_jwt_secret
-   STRIPE_SECRET=your_stripe_secret_key
    PAYPAL_CLIENT_ID=your_paypal_client_id
    PAYPAL_SECRET=your_paypal_secret
    ```
@@ -101,7 +100,6 @@ npm run build:prod
 3. Set the following environment variables:
    - `MONGO_URI`: Your MongoDB Atlas connection string
    - `JWT_SECRET`: A secure random string
-   - `STRIPE_SECRET_KEY`: Your Stripe live secret key
    - `PAYPAL_CLIENT_ID`: Your PayPal client ID
    - `PAYPAL_CLIENT_SECRET`: Your PayPal client secret
    - `CLIENT_URL`: Your Cloudflare Pages domain (e.g., `https://your-app.pages.dev`)
@@ -146,7 +144,6 @@ npm run build:prod
 - `POST /api/agents/login` — agent login
 
 ### Payment routes
-- `POST /api/payments/create-payment-intent` — create a Stripe payment intent
 - `POST /api/payments/capture-order/:orderId` — capture a PayPal order and confirm an errand
 - `POST /api/payments/deposit` — deposit funds into a wallet
 - `POST /api/payments/withdraw` — withdraw funds from a wallet

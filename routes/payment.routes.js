@@ -1,5 +1,4 @@
 const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const router = express.Router();
 const axios = require('axios');
 const db = require('../config/db.mysql').pool;
@@ -52,69 +51,6 @@ router.post('/capture-order/:orderId', async (req, res) => {
 
 
 
-router.post('/create-payment-intent', async (req, res) => {
-  const { amount, currency = 'usd' } = req.body;
-
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: amount * 100,
-    currency,
-    automatic_payment_methods: { enabled: true }
-  });
-
-  res.send({ clientSecret: paymentIntent.client_secret });
-});
-
-// Handle deposits (Legacy - recommend using wallet.routes.js instead)
-router.post('/deposit', async (req, res) => {
-  const { amount, currency = 'usd', paymentMethod } = req.body;
-
-  try {
-    // Process payment using Stripe (or another gateway)
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount * 100, // Convert to cents/pennies if necessary
-      currency,
-      payment_method: paymentMethod,
-      confirm: true
-    });
-
-    // Get or create spendable wallet
-    let [wallet] = await db.execute(
-      'SELECT * FROM wallets WHERE user_id = ? AND wallet_type = "spendable" AND currency = ? AND status = "active"',
-      [req.user.id, currency.toUpperCase()]
-    );
-    
-    if (!wallet[0]) {
-      await db.execute(
-        'INSERT INTO wallets (user_id, wallet_type, currency, balance, status) VALUES (?, "spendable", ?, 0.00, "active")',
-        [req.user.id, currency.toUpperCase()]
-      );
-      [wallet] = await db.execute(
-        'SELECT * FROM wallets WHERE user_id = ? AND wallet_type = "spendable" AND currency = ? AND status = "active"',
-        [req.user.id, currency.toUpperCase()]
-      );
-    }
-
-    // Update wallet balance
-    await db.execute(
-      'UPDATE wallets SET balance = balance + ? WHERE id = ?',
-      [amount, wallet[0].id]
-    );
-
-    // Log the wallet transaction
-    await db.execute(
-      `INSERT INTO wallet_transactions (
-        to_wallet_id, transaction_type, amount, currency, description, 
-        payment_gateway, gateway_transaction_id, status, processed_at
-      ) VALUES (?, 'deposit', ?, ?, ?, 'stripe', ?, 'completed', NOW())`,
-      [wallet[0].id, amount, currency.toUpperCase(), 'Deposit via Stripe', paymentIntent.id]
-    );
-
-    res.send({ success: true, message: 'Deposit successful' });
-  } catch (error) {
-    res.status(500).send({ success: false, message: 'Deposit failed', error: error.message });
-  }
-});
-
 // Handle withdrawals
 router.post('/withdraw', async (req, res) => {
   const { amount, withdrawMethod = 'bank_transfer' } = req.body;
@@ -136,10 +72,6 @@ router.post('/withdraw', async (req, res) => {
       return res.status(400).send({ success: false, message: 'Insufficient balance' });
     }
 
-    // Process withdrawal using payment gateway (e.g., Stripe transfers)
-    // Note: This is a simplified version. In production, you'd need to setup Stripe Connect
-    // or similar service to handle payouts to user bank accounts
-    
     // For now, we'll simulate the withdrawal process
     // In production, replace this with actual payout API call
     const withdrawalSuccessful = true; // Simulate successful withdrawal

@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS withdrawal_methods (
     user_id INT NOT NULL,
     
     -- Method Information
-    method_type ENUM('bank_transfer', 'paypal', 'stripe', 'crypto_wallet') NOT NULL,
+    method_type ENUM('bank_transfer', 'paypal', 'crypto_wallet') NOT NULL,
     method_name VARCHAR(100) NOT NULL, -- User-friendly name
     
     -- Account Details (encrypted in production)
